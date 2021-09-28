@@ -73,38 +73,52 @@ static bool rejudge_flag;
 static int locale_id = 0;
 
 static int parse_status(const std::string &str) {
+    
     if (str.length() != 2) return -1;
+    
     char c1 = toupper(str[0]);
     char c2 = toupper(str[1]);
+
     if (c1 == 'A') {
         if (c2 == 'C') return RUN_ACCEPTED;
+
     } else if (c1 == 'C') {
+
         if (c2 == 'E') return RUN_COMPILE_ERR;
         if (c2 == 'F') return RUN_CHECK_FAILED;
+
     } else if (c1 == 'D') {
         if (c2 == 'Q') return RUN_DISQUALIFIED;
+
     } else if (c1 == 'I') {
         if (c2 == 'G') return RUN_IGNORED;
+
     } else if (c1 == 'M') {
         if (c2 == 'L') return RUN_MEM_LIMIT_ERR;
+
     } else if (c1 == 'O') {
         if (c2 == 'K') return RUN_OK;
+
     } else if (c1 == 'P') {
         if (c2 == 'D') return RUN_PENDING;
         if (c2 == 'E') return RUN_PRESENTATION_ERR;
         if (c2 == 'R') return RUN_PENDING_REVIEW;
         if (c2 == 'T') return RUN_PARTIAL;
+
     } else if (c1 == 'S') {
         if (c2 == 'E') return RUN_SECURITY_ERR;
         if (c2 == 'K') return RUN_SKIPPED;
         if (c2 == 'M') return RUN_SUMMONED;
         if (c2 == 'V') return RUN_STYLE_ERR;
         if (c2 == 'Y') return RUN_SYNC_ERR;
+
     } else if (c1 == 'R') {
         if (c2 == 'J') return RUN_REJECTED;
         if (c2 == 'T') return RUN_RUN_TIME_ERR;
+
     } else if (c1 == 'T') {
         if (c2 == 'L') return RUN_TIME_LIMIT_ERR;
+
     } else if (c1 == 'W') {
         if (c2 == 'A') return RUN_WRONG_ANSWER_ERR;
         if (c2 == 'T') return RUN_WALL_TIME_LIMIT_ERR;
@@ -114,8 +128,7 @@ static int parse_status(const std::string &str) {
 }
 
 class ConfigParser;
-class Group
-{
+class Group {
     std::string group_id;
     int first = 0;
     int last = 0;
@@ -722,6 +735,31 @@ bool Group::meet_requirements(const ConfigParser &cfg, const Group *&grp) const 
         if (!gg->is_passed()) break;
     }
 
+void getSelfdir(int argc, char* argv[]) {
+    if (argc == 4) return argv[3];
+
+    size_t pos = self.find_last_of('/');
+
+    if (pos == string::npos) {
+        char buf[PATH_MAX];
+        if (!getcwd(buf, sizeof(buf))) die("getcwd() failed");
+        selfdir = buf;
+
+    } else if (pos == 0) {
+        die("won't work in the root directory");
+
+    } else if (self[0] == '/') {
+        selfdir = self.substr(0, pos);
+
+    } else {
+        char buf[PATH_MAX];
+        if (!getcwd(buf, sizeof(buf))) die("getcwd() failed");
+        selfdir = buf;
+        if (selfdir != "/") selfdir += '/';
+        selfdir += self.substr(0, pos);
+    }
+}
+
     if (i >= int(requires.size())) {
         grp = NULL;
         return true;
@@ -731,33 +769,40 @@ bool Group::meet_requirements(const ConfigParser &cfg, const Group *&grp) const 
     return false;
 }
 
+std::string getSelfdir(int argc, char* argv[]) {
+    if (argc == 4) return argv[3];
+
+    size_t pos = argv[0].find_last_of('/');
+
+    if (pos == std::string::npos) {
+        char buf[PATH_MAX];
+        if (!getcwd(buf, sizeof(buf))) die("getcwd() failed");
+        selfdir = buf;
+
+    } else if (pos == 0) {
+        die("won't work in the root directory");
+
+    } else if (argv[0][0] == '/') {
+        selfdir = argv[0].substr(0, pos);
+
+    } else {
+        char buf[PATH_MAX];
+        if (!getcwd(buf, sizeof(buf))) die("getcwd() failed");
+        selfdir = buf;
+        if (selfdir != "/") selfdir += '/';
+        selfdir += argv[0].substr(0, pos);
+    }
+}
+
 
 int main(int argc, char *argv[]) {
     if (argc < 3 || argc > 4) die("invalid number of arguments");
 
-    string self(argv[0]);
-    string selfdir;
+    std::string self(argv[0]);
     int valuer_marked = 0;
-    if (argc == 3) {
-        size_t pos = self.find_last_of('/');
-        if (pos == string::npos) {
-            char buf[PATH_MAX];
-            if (!getcwd(buf, sizeof(buf))) die("getcwd() failed");
-            selfdir = buf;
-        } else if (pos == 0) {
-            die("won't work in the root directory");
-        } else if (self[0] == '/') {
-            selfdir = self.substr(0, pos);
-        } else {
-            char buf[PATH_MAX];
-            if (!getcwd(buf, sizeof(buf))) die("getcwd() failed");
-            selfdir = buf;
-            if (selfdir != "/") selfdir += '/';
-            selfdir += self.substr(0, pos);
-        }
-    } else {
-        selfdir = argv[3];
-    }
+
+    // Added getSelfdir() function
+    std::string selfdir = getSelfdir(argc, argv);
 
     if (!getenv("EJUDGE")) die("EJUDGE environment variable must be set");
     if (getenv("EJUDGE_USER_SCORE")) user_score_flag = true;
