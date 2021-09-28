@@ -804,7 +804,7 @@ int main(int argc, char *argv[]) {
     SetEnvironmentList();
 
     std::string configpath = selfdir + "/valuer.cfg";
-    
+
     ConfigParser parser;
     parser.parse(configpath);
 
