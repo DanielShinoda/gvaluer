@@ -744,7 +744,7 @@ bool Group::meet_requirements(const ConfigParser &cfg, const Group *&grp) const 
     return false;
 }
 
-std::string getSelfdir(int argc, char* argv[]) {
+std::string GetSelfdir(int argc, char* argv[]) {
     if (argc == 4) return argv[3];
     std::string selfdir;
 
@@ -771,6 +771,27 @@ std::string getSelfdir(int argc, char* argv[]) {
     }
 }
 
+void SetEnvironmentList() {
+    if (!getenv("EJUDGE")) die("EJUDGE environment variable must be set");
+    
+    if (getenv("EJUDGE_USER_SCORE")) user_score_flag = true;
+    
+    if (getenv("EJUDGE_MARKED")) marked_flag = true;
+    
+    if (getenv("EJUDGE_INTERACTIVE")) interactive_flag = true;
+
+    if (getenv("EJUDGE_REJUDGE")) rejudge_flag = true; {
+        char *ls = getenv("EJUDGE_LOCALE");
+        if (ls) {
+            try {
+                locale_id = stoi(ls);
+            } catch (...) { }
+
+            if (locale_id < 0) locale_id = 0;
+        }
+    }
+}
+
 
 int main(int argc, char *argv[]) {
     if (argc < 3 || argc > 4) die("invalid number of arguments");
@@ -778,26 +799,12 @@ int main(int argc, char *argv[]) {
     std::string self(argv[0]);
     int valuer_marked = 0;
 
-    // Added getSelfdir() function
-    std::string selfdir = getSelfdir(argc, argv);
+    std::string selfdir = GetSelfdir(argc, argv);
+ 
+    SetEnvironmentList();
 
-    if (!getenv("EJUDGE")) die("EJUDGE environment variable must be set");
-    if (getenv("EJUDGE_USER_SCORE")) user_score_flag = true;
-    if (getenv("EJUDGE_MARKED")) marked_flag = true;
-    if (getenv("EJUDGE_INTERACTIVE")) interactive_flag = true;
-    if (getenv("EJUDGE_REJUDGE")) rejudge_flag = true;
-    {
-        char *ls = getenv("EJUDGE_LOCALE");
-        if (ls) {
-            try {
-                locale_id = stoi(ls);
-            } catch (...) {
-            }
-            if (locale_id < 0) locale_id = 0;
-        }
-    }
-
-    string configpath = selfdir + "/valuer.cfg";
+    std::string configpath = selfdir + "/valuer.cfg";
+    
     ConfigParser parser;
     parser.parse(configpath);
 
