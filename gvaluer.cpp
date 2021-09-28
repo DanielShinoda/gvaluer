@@ -735,31 +735,6 @@ bool Group::meet_requirements(const ConfigParser &cfg, const Group *&grp) const 
         if (!gg->is_passed()) break;
     }
 
-void getSelfdir(int argc, char* argv[]) {
-    if (argc == 4) return argv[3];
-
-    size_t pos = self.find_last_of('/');
-
-    if (pos == string::npos) {
-        char buf[PATH_MAX];
-        if (!getcwd(buf, sizeof(buf))) die("getcwd() failed");
-        selfdir = buf;
-
-    } else if (pos == 0) {
-        die("won't work in the root directory");
-
-    } else if (self[0] == '/') {
-        selfdir = self.substr(0, pos);
-
-    } else {
-        char buf[PATH_MAX];
-        if (!getcwd(buf, sizeof(buf))) die("getcwd() failed");
-        selfdir = buf;
-        if (selfdir != "/") selfdir += '/';
-        selfdir += self.substr(0, pos);
-    }
-}
-
     if (i >= int(requires.size())) {
         grp = NULL;
         return true;
