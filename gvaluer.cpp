@@ -771,19 +771,20 @@ void getSelfdir(int argc, char* argv[]) {
 
 std::string getSelfdir(int argc, char* argv[]) {
     if (argc == 4) return argv[3];
+    std::string selfdir;
 
     size_t pos = argv[0].find_last_of('/');
 
     if (pos == std::string::npos) {
         char buf[PATH_MAX];
         if (!getcwd(buf, sizeof(buf))) die("getcwd() failed");
-        selfdir = buf;
+        return buf;
 
     } else if (pos == 0) {
         die("won't work in the root directory");
 
     } else if (argv[0][0] == '/') {
-        selfdir = argv[0].substr(0, pos);
+        return argv[0].substr(0, pos);
 
     } else {
         char buf[PATH_MAX];
@@ -791,6 +792,7 @@ std::string getSelfdir(int argc, char* argv[]) {
         selfdir = buf;
         if (selfdir != "/") selfdir += '/';
         selfdir += argv[0].substr(0, pos);
+        return selfdir;
     }
 }
 
